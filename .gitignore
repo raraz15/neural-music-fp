@@ -1,0 +1,19 @@
+./_*.py
+**/__pycache__
+**/**/__pycache__
+**/**/**/__pycache__
+**/dev/
+.vscode/*
+*.ipynb_checkpoints
+*.pyc
+
+logs/
+
+*.wav
+# *.png
+# *.jpeg
+# *.pdf
+*.err
+*.out
+
+TODO.md
