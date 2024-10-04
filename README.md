@@ -1,6 +1,6 @@
 # Neural Music Fingerprinting
 
-This repository contains the code to run the experiments described in our paper 'Enhancing Neural Audio Fingerprint Robustness to Audio Degradation for Music Identification' submitted to ICASSP2025. Our work builds upon [Neural Audio Fingerprinting (NAFP)](https://github.com/mimbres/neural-audio-fp), itroducing various improvements. In addition to these enhancements, we updated several packages:
+This repository contains the code to run the experiments described in our paper 'Enhancing Neural Audio Fingerprint Robustness to Audio Degradation for Music Identification' submitted to ICASSP2025. Our work builds upon [Neural Audio Fingerprinting (NAFP)](https://github.com/mimbres/neural-audio-fp), introducing various improvements. In addition to these enhancements, we updated several packages:
 
 * python 3.11
 * tensorflow 2.13
@@ -108,9 +108,7 @@ export XLA_FLAGS=--xla_gpu_cuda_data_dir=$CONDA_PREFIX/lib
 
 ## Dataset
 
-For music, we use the FMA dataset, for audio degradation we use multiple datasets. You should download and process them by following the steps in `dataset_creation/README`. 
-
-*NOTE*: coming soon...
+For music, we use the [FMA dataset](https://github.com/mdeff/fma), for audio degradation we use multiple datasets. The details of the dataset and the steps to reproduce it is provided in `dataset_creation/README`. 
 
 ## Download Pre-trained Fingerprinters
 
@@ -118,7 +116,7 @@ In this drive folder you can find the pre-trained fingerprinters described in th
 
 ![Models](extra/table1.png)
 
-*NOTE*: To run B0a, B1a, and B1b models you need to use the original [NAFP repository](https://github.com/mimbres/neural-audio-fp). To download B0a you should also refer to their repository.
+*NOTE*: To run B0a, B1a, and B1b models you need to use the original [NAFP repository](https://github.com/mimbres/neural-audio-fp). We provide B1a and B1b, however, to download B0a you should also refer to their repository.
 
 ## Train a Fingerprinter
 
