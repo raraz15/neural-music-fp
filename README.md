@@ -30,7 +30,7 @@ Check the sections of this README for detailed instructions, or refer to the `pi
     conda activate nmfp
     ```
 
-1. Install CUDA dependencies for tensorflow 2.13:
+1. Install CUDA dependencies for TensorFlow 2.13:
 
     ```bash
     conda install -c conda-forge cudatoolkit=11.8 cudnn=8.8
@@ -66,10 +66,9 @@ Check the sections of this README for detailed instructions, or refer to the `pi
     pip install essentia==2.1b6.dev1110
     ```
 
-#### Fix for CUDA Errors
+#### `Error: Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice`
 
-'Error: Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice' 
-If you get this [error](https://github.com/tensorflow/tensorflow/issues/58681) you need to additionaly follow these steps.
+If you get this [error](https://github.com/tensorflow/tensorflow/issues/58681), you need to follow these steps.
 
 ```bash
 conda install -c nvidia cuda-nvcc --yes
@@ -108,19 +107,20 @@ export XLA_FLAGS=--xla_gpu_cuda_data_dir=$CONDA_PREFIX/lib
 
 ## Dataset
 
-For music, we use the [FMA dataset](https://github.com/mdeff/fma), for audio degradation we use multiple datasets. The details of the dataset and the steps to reproduce it is provided in `dataset_creation/README`. 
+All music tracks are taken from the [FMA dataset](https://github.com/mdeff/fma). Audio degradation is simulated with multiple public datasets. All related details regarding the steps to reproduce the data used in our experiments are provided in `dataset_creation/README`.
 
 ## Download Pre-trained Fingerprinters
 
-In this drive folder you can find the pre-trained fingerprinters described in the paper. https://drive.google.com/drive/folders/1ZbZyA8KpX89GruKeDiFsseXTJBZw_Rfq?usp=sharing
+You can find the pre-trained fingerprinters described in the paper in our [drive folder](https://drive.google.com/drive/folders/1ZbZyA8KpX89GruKeDiFsseXTJBZw_Rfq?usp=sharing).
+TODO: add the models to Essentia.
 
 ![Models](extra/table1.png)
 
-*NOTE*: To run B0a, B1a, and B1b models you need to use the original [NAFP repository](https://github.com/mimbres/neural-audio-fp). We provide B1a and B1b, however, to download B0a you should also refer to their repository.
+*NOTE*: To run B0a, B1a, and B1b models you need to use the original [NAFP repository](https://github.com/mimbres/neural-audio-fp). We provide the B1a and B1b models that we trained, however, to download B0a (trained by the NAFP authors) you should also refer to their repository.
 
 ## Train a Fingerprinter
 
-We use YAML config files to define parameters for the architecture, model, data, and training. Below is an example of how to train a model using the config file `config/default_nmfp.yaml`. Training logs and model checkpoints will be saved to the directory specified in the config (`cfg['MODEL']['LOG_ROOT_DIR']`). The trained model's configuration will be saved next to the weights.
+We use YAML config files to define the architecture, model, data, and training parameters. Below is an example of how to train a model using the config file `config/default_nmfp.yaml`. Training logs and model checkpoints will be saved to the directory specified in the config (`cfg['MODEL']['LOG_ROOT_DIR']`). The trained model's configuration will be saved next to the weights.
 
 Example usage:
 
