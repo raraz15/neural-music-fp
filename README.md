@@ -8,6 +8,8 @@ This repository contains the code to run the experiments described in our paper 
 
 Check the sections of this README for detailed instructions, or refer to the `pipeline.sh` file for a complete workflow overview.
 
+*NOTE* Docker image is on the way!
+
 ## Table of Content
 
 - [Installation](#installation)
