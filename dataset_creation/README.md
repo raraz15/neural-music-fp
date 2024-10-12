@@ -48,7 +48,9 @@ Since in our experiments, we compare the effect of NAFP's degradations vs our de
 
 ## Audio Degradation
 
-This section contains the information related to the audio degradation datasets.
+This section contains the information related to the audio degradation datasets. For a detailed analysis of NAFP's and our degradations' use this [notebook](./dataset_creation/degradation_analysis_and_split.ipynb). It also contains the code to split files into train, validation, and test sets.
+
+*NOTE:* The notebook still has some cleaning to do. Soon we will host the files on zenodo, and share the file names here for increased reproducibility.
 
 ### Background Noise
 

@@ -14,6 +14,8 @@ Check the sections of this README for detailed instructions, or refer to the `pi
     - [GPU support](#gpu-support)
     - [CPU only](#cpu-only)
 - [Dataset](#dataset)
+    - [Re-create the Dataset](#re-create-the-dataset)
+    - [Download the Dataset](#download-the-dataset)
 - [Download Pre-trained Fingerprinters](#download-pre-trained-fingerprinters)
 - [Train a model](#train-a-fingerprinter)
 - [Create fingerprints](#create-fingerprints)
@@ -107,7 +109,15 @@ export XLA_FLAGS=--xla_gpu_cuda_data_dir=$CONDA_PREFIX/lib
 
 ## Dataset
 
-All music tracks are taken from the [FMA dataset](https://github.com/mdeff/fma). Audio degradation is simulated with multiple public datasets. All related details regarding the steps to reproduce the data used in our experiments are provided in `dataset_creation/README`.
+For music, we use the [FMA dataset](https://github.com/mdeff/fma), for audio degradation we use multiple publicly available datasets. For downloading the processed data that were used in our experiments or reading the instructions on how we created the data, follow read the reminder of this section.
+
+### Re-create the Dataset
+
+This [README](./dataset_creation/README.md) file contains the steps to reproduce the dataset. The same folder contains *all* the code to process and split data. This [notebook](./dataset_creation/degradation_analysis_and_split.ipynb) analyzes NAFP's and ours audio degradation files in detail and creates the splits.
+
+### Download the Dataset
+
+Soon we will host the processed data on Zenodo! Until then, please refer to: [README](./dataset_creation/README.md).
 
 ## Download Pre-trained Fingerprinters
 
