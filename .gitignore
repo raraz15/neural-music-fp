@@ -1,0 +1,15 @@
+./_*.py
+**/__pycache__
+**/**/__pycache__
+**/**/**/__pycache__
+**/dev/
+.vscode/*
+*.ipynb_checkpoints
+
+logs/
+# slurm/slurm_logs/*
+
+*.wav
+*.png
+*.jpeg
+*.pdf
