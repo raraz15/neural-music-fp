@@ -1,0 +1,30 @@
+services:
+    nmfp:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: nmfp
+        volumes:
+            - ./logs:/src/neural-music-fp/logs                # local logs
+            - ./datasets:/src/datasets                # local datasets
+            - ./code:/src/neural-music-fp                     # your repo code
+            # - /custom/path:/some/mount/point/external_datasets:ro  # optional external dataset (user to configure)
+        container_name: nmfp
+        network_mode: host
+        runtime: nvidia
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities: [gpu]
+        environment:
+            - NVIDIA_VISIBLE_DEVICES=all
+        stdin_open: true        # Keeps stdin open to allow interaction
+        tty: true               # Allocates a pseudo-TTY
+        entrypoint: >
+            /bin/bash -c "source /opt/conda/etc/profile.d/conda.sh &&
+            conda activate nmfp &&
+            cd /src/neural-music-fp &&
+            exec /bin/bash"

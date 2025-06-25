@@ -1,0 +1,102 @@
+# Model parameters.
+    # NOTE:
+    # - In the current version, modifying {FS, DUR, HOB, STFT WIN, STFT HOP}
+    #   may cause the model to malfunction or cause input shape mismatch errors.
+    #   In that case, you will need to modify the kernel size strides of Conv
+    #   layers in 'nmfp/model/nnfp.py'.
+MODEL:
+    NAME: nmfp-triplet-hp_shn-Nppa_1-Na_768
+        # Name of the model. Used for logging.
+    AUDIO:
+        SEGMENT_DUR: 1.
+            # Duration of an audio segment the model uses in seconds.
+        FS: 8000
+            # Sampling rate (Hz).
+    # Parameters for computing the mel-spectrogram input to the model.
+    INPUT:
+        STFT_WIN: 1024
+        STFT_HOP: 256
+        F_MIN: 160.
+            # Lowest frequency used for Melspectrogram computation.
+        F_MAX: 4000.
+            # Highest frequency used for Melspectrogram computation.
+        N_MELS: 256
+            # Number of mel-frequency bins.
+        DYNAMIC_RANGE: 80
+            # Dynamic range of the mel-spectrogram.
+        SCALE: True
+            # Scale the power mel-spectrogram to [-1,1].
+    ARCHITECTURE:
+        EMB_SZ: 128
+            # Dimension of fingerprint, d in this paper.
+        BN: layer_norm2d
+            # layer_norm1d or 'layer_norm2d' or 'batch_norm'
+    LOG_ROOT_DIR: logs/nmfp/fma-nmfp_deg/
+        # Directories to store the model checkpoints, its training process and 
+        # generated embeddings (uncompressed fingerprints) will be stored.
+        # The embedding directory can later be changed in evaluation-extraction.py
+
+# Training parameters
+TRAIN:
+    MUSIC_DIR: ../datasets/neural-music-fp-dataset/music/train/
+    # Audio parameters
+    AUDIO:
+        SEGMENT_HOP_DUR: 0.5
+            # Hop-size of the segment in seconds.
+        CHUNK_DUR: 30
+            # Duration of the audio chunks in seconds.
+            # It is important to unify the number of segments per chunk
+            # to ensure our batch creation technique. Audio with duration
+            # less than this value will be discarded.
+        MAX_OFFSET_DUR_ANCHOR: 0.25
+        MAX_OFFSET_DUR_POS: 0.25
+            # Maximum offset duration in seconds.
+            # We randomly offset the audio segment by a random 
+            # amount in the range of [0, MAX_OFFSET_DUR] seconds.
+            # This is to simulate real-life scenarios where the 
+            # audio segment is not perfectly aligned with the 
+            # fingerprint.
+        PAST_CONTEXT_DUR: 1.0
+            # Duration of the past context in seconds.
+    # Hyperparameters
+    MAX_EPOCH: 100
+    N_ANCHORS: 768
+    N_POSITIVES_PER_ANCHOR: 1
+    LOSS:
+        LOSS_MODE: triplet
+        MARGIN: 0.50
+        POS_MODE: hard
+        NEG_MODE: semi-hard
+        SQUARED: True
+    OPTIMIZER: Adam
+        # Only supports Adam for now.
+    LR:
+        INITIAL_RATE: 1e-4
+            # Initial learning rate.
+        SCHEDULE: cos
+            # [cos, cos-restart, None]
+        ALPHA: 1e-6
+            # Minimum learning rate value for decay as a fraction of INITIAL_RATE.
+    # Audio degradation parameters
+    DEGRADATION:
+        # Time-domain
+        TD:
+            BG: True
+            BG_ROOT: ../datasets/neural-music-fp-dataset/degradation/bg_noise/train/
+            BG_SNR: [0, 10]
+            RIR: True
+            RIR_ROOT: ../datasets/neural-music-fp-dataset/degradation/room_ir/train/
+            PRE_RIR_AMP_RANGE: [0.1, 1]
+            MIR: True
+            MIR_ROOT: ../datasets/neural-music-fp-dataset/degradation/microphone_ir/train/
+            PRE_MIR_AMP_RANGE: [0.1, 1]
+        # Spectral-domain
+        SPEC:
+            CHAIN: [cutout, horizontal]
+                # cutout, horizontal, vertical
+            PROBS: 1.
+            N_HOLES: 1
+            HOLE_FILL: zeros
+                # {min, zeros, random, [min_mag, max_mag]}
+    # Miscanelous
+    MIXED_PRECISION: True
