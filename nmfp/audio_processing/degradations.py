@@ -175,6 +175,8 @@ def convolve_with_IR_batch(X_batch: np.ndarray, IR_batch: np.ndarray) -> np.ndar
     # Inverse FFT to obtain time domain result.
     Y = np.fft.irfft(Y_fft, n=N, axis=1)
 
+    # NOTE this should have came after the peak norm, but the
+    # peak is supposed to happen much before the tail anyways
     # Trim to original length T.
     Y_trimmed = Y[:, :T]
 
