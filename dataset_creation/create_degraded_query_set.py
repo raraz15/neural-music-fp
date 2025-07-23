@@ -113,7 +113,7 @@ def get_degradation_loader(
 
     # Create the degradation dataset
     loader = DegradationLoader(
-        chunk_paths=clean_query_paths,
+        track_paths=clean_query_paths,
         fs=fs,
         bg_aug_parameters=ts_bg_parameters,
         room_ir_aug_parameters=ts_rir_parameters,
