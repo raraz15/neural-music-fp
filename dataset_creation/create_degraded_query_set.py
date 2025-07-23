@@ -53,9 +53,9 @@ def get_degradation_loader(
         track_ids
     ), "Some tracks do not exist in the specified directory."
 
-    # Read the augmentation files
+    # Read the degradation files
     if bg_root_dir == "":
-        print("No background noise will be used for augmentation.")
+        print("No background noise will be used for degradation.")
         bg_aug = False
         ts_bg_fps = []
     else:
@@ -67,7 +67,7 @@ def get_degradation_loader(
         assert len(ts_bg_fps) > 0, f"No background noise found in {bg_root_dir}."
 
     if room_ir_root_dir == "":
-        print("No room impulse response will be used for augmentation.")
+        print("No room impulse response will be used for degradation.")
         room_ir_aug = False
         ts_rir_fps = []
     else:
@@ -81,7 +81,7 @@ def get_degradation_loader(
         ), f"No room impulse response found in {room_ir_root_dir}."
 
     if mic_ir_root_dir == "":
-        print("No microphone impulse response will be used for augmentation.")
+        print("No microphone impulse response will be used for degradation.")
         mic_ir_aug = False
         ts_mir_fps = []
     else:
@@ -94,7 +94,7 @@ def get_degradation_loader(
             len(ts_mir_fps) > 0
         ), f"No microphone impulse response found in {mic_ir_root_dir}."
 
-    # Collect the augmentation parameters
+    # Collect the degradation parameters
     ts_bg_parameters = [
         bg_aug,
         ts_bg_fps,
@@ -111,7 +111,7 @@ def get_degradation_loader(
         pre_mir_random_gain_range,
     ]
 
-    # Create the augmentation dataset
+    # Create the degradation dataset
     loader = DegradationLoader(
         chunk_paths=clean_query_paths,
         fs=fs,
@@ -388,7 +388,7 @@ if __name__ == "__main__":
         "--bg_snr_range",
         type=str,
         default="0,10",
-        help="Range of SNR values for background noise augmentation.",
+        help="Range of SNR values for background noise degradation.",
     )
     parser.add_argument(
         "--rir_root_dir",
@@ -400,7 +400,7 @@ if __name__ == "__main__":
         "--pre_rir_random_gain_range",
         type=str,
         default="0.1,1.0",
-        help="Range of random gain values for pre Room IR augmentation.",
+        help="Range of random gain values for pre Room IR degradation.",
     )
     parser.add_argument(
         "--mir_root_dir",
@@ -412,7 +412,7 @@ if __name__ == "__main__":
         "--pre_mir_random_gain_range",
         type=str,
         default="0.1,1.0",
-        help="Range of random gain values for pre Microphone IR augmentation.",
+        help="Range of random gain values for pre Microphone IR degradation.",
     )
     parser.add_argument(
         "--fs",
@@ -425,13 +425,13 @@ if __name__ == "__main__":
     # Set the seed
     set_seed(seed_tf=False)
 
-    # Check the augmentation parameters
+    # Check the degradation parameters
     assert args.bg_root_dir or args.rir_root_dir or args.mir_root_dir, (
-        "At least one of the augmentation parameters should be provided. "
+        "At least one of the degradation parameters should be provided. "
         "Use --bg_root_dir, --rir_root_dir, or --mir_root_dir"
     )
 
-    # Parse numeric augmentation parameters
+    # Parse numeric degradation parameters
     args.bg_snr_range = sorted(tuple([float(x) for x in args.bg_snr_range.split(",")]))
     assert (
         len(args.bg_snr_range) == 2
