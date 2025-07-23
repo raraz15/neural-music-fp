@@ -67,7 +67,6 @@ class EvaluationDataset:
 
         print("Creating the database loader...")
 
-        # Find the database tracks
         if os.path.isdir(db_tracks):
             db_track_paths = sorted(
                 glob.glob(os.path.join(db_tracks, "**", "*.wav"), recursive=True)
@@ -80,7 +79,6 @@ class EvaluationDataset:
         assert len(db_track_paths) > 0, f"No audio files found in {db_tracks}"
         print(f"{len(db_track_paths):,} database audio files found.")
 
-        # Create the database dataset
         return EvaluationLoader(
             track_paths=db_track_paths,
             segment_duration=self.segment_duration,
@@ -122,7 +120,6 @@ class EvaluationDataset:
 
         print("Creating the query loader...")
 
-        # Find the query audio files
         if os.path.isdir(query_chunks):
             self.query_chunk_paths = sorted(
                 glob.glob(os.path.join(query_chunks, "**", "*.wav"), recursive=True)
@@ -149,7 +146,6 @@ class EvaluationDataset:
                 "Evaluation will be performed at the track level only."
             )
 
-        # Create the query dataset
         ds = EvaluationLoader(
             track_paths=self.query_chunk_paths,
             segment_duration=self.segment_duration,
