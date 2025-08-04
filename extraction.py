@@ -23,6 +23,7 @@ import traceback
 import multiprocessing as mp
 import signal
 import time
+import math
 import argparse
 from pathlib import Path
 
@@ -122,108 +123,99 @@ if __name__ == "__main__":
     if not args.block_growth:
         set_gpu_memory_growth()
 
+    # Load the config file
+    cfg = load_config(args.config_path)
+
+    # Build the model
+    m_fp = get_fingerprinter(cfg, trainable=False)
+
+    # Wrap the model once with relaxed shapes:
+    compute_fp = tf.function(
+        m_fp,
+        experimental_relax_shapes=True,  # ignore minor shape diffs
+        reduce_retracing=True,  # bucket similar shapes
+    )
+
+    # Load the model weights
+    checkpoint_dir = args.config_path.parent
+    _ = get_checkpoint_index_and_restore_model(m_fp, checkpoint_dir)
+
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Find the audio paths
+    dataset = InferenceDataset(cfg)
+    audio_paths = dataset.find_audio_paths(args.audio)
+
+    # To preserve the relative paths of the audio files
+    common_root = os.path.commonpath(audio_paths)
+    print(f"Common root path: {common_root}")
+
+    # Build the output paths and skip already processed files
+    print("Skipping already processed files...")
+    output_paths = {}
+    for audio_path in audio_paths:
+        output_path = (
+            args.output_dir
+            / audio_path.relative_to(common_root)  # preserve relative paths
+        ).with_suffix(".npy")
+        if not output_path.exists():
+            output_paths[audio_path] = output_path
+    audio_paths = list(output_paths.keys())
+    print(f"{len(output_paths):,} audio files remaining to be processed.")
+
+    # Partition the audio files if requested
+    if args.num_partitions > 1:
+        total = len(audio_paths)
+        chunk_size = math.ceil(total / args.num_partitions)
+        start = chunk_size * (args.partition - 1)
+        end = min(start + chunk_size, total)
+        audio_paths = audio_paths[start:end]
+        print(f"Partition {args.partition} will process {len(audio_paths):,} files.")
+
+    # Build the dataloader and the multiprocessing enqueuer
+    loader = dataset.get_loader(audio_paths, args.hop_duration)
+    progbar = tf.keras.utils.Progbar(len(loader))
+    enq = tf.keras.utils.OrderedEnqueuer(
+        loader, use_multiprocessing=True, shuffle=False
+    )
+
     try:
+        enq.start(workers=args.workers, max_queue_size=args.queue)
+        gen = enq.get()
+        start_time = time.monotonic()
+        i, n = 0, 0
+        enq_len = len(enq.sequence)
 
-        # Load the config file
-        cfg = load_config(args.config_path)
-
-        # Build the model
-        m_fp = get_fingerprinter(cfg, trainable=False)
-
-        # Wrap the model once with relaxed shapes:
-        compute_fp = tf.function(
-            m_fp,
-            experimental_relax_shapes=True,  # ignore minor shape diffs
-            reduce_retracing=True,  # bucket similar shapes
-        )
-
-        # Load the model weights
-        checkpoint_dir = args.config_path.parent
-        _ = get_checkpoint_index_and_restore_model(m_fp, checkpoint_dir)
-
-        # Build the dataloader
-        dataset = InferenceDataset(cfg)
-        loader = dataset.get_loader(args.audio, args.hop_duration)
-
-        # To preserve the relative paths of the audio files
-        common_root = os.path.commonpath(loader.audio_paths)
-        # Build the output paths and skip already processed files
-        print("Skipping already processed files...")
-        output_paths = {}
-        for audio_path in loader.audio_paths:
-            output_path = (
-                args.output_dir
-                / "embeddings"  # to group individual fingerprints, for the database mostly
-                / audio_path.relative_to(common_root)  # preserve relative paths
-            ).with_suffix(".npy")
-            if not output_path.exists():
-                output_paths[audio_path] = output_path
-        loader.audio_paths = list(output_paths.keys())
-        print(f"{len(output_paths):,} audio files remaining to be processed.")
-
-        # Partition the audio files if requested
-        if args.num_partitions > 1:
-            output_paths = {
-                k: output_paths[k]
-                for k in list(output_paths.keys())[
-                    args.partition - 1 :: args.num_partitions
-                ]
-            }
-            loader.audio_paths = list(output_paths.keys())
-            print(
-                f"Partition {args.partition} will process {len(output_paths):,} files."
-            )
-
-        progbar = tf.keras.utils.Progbar(len(loader))
-
-        try:
-
-            """Parallelism in the dataloader to speed up processing------"""
-            enq = tf.keras.utils.OrderedEnqueuer(
-                loader, use_multiprocessing=True, shuffle=False
-            )
-            enq.start(workers=args.workers, max_queue_size=args.queue)
-            gen = enq.get()
-            start_time = time.monotonic()
-            i, n = 0, 0
+        while i < enq_len:
             try:
-                while i < len(enq.sequence):
-                    # Get the next batch of data
-                    # X_mel is a 4D tensor of shape (batch_size, n_mels, n_frames, 1)
-                    _, X_mel, X_path = next(gen)
-
-                    if X_mel is None:
-                        i += 1
-                        progbar.update(i)
-                        print(
-                            f"\n\x1b[1;33m[WARNING] Skipping audio file {X_path} due to insufficient length.\x1b[0m"
-                        )
-                        continue
-
-                    emb = infer(
-                        X_mel,
-                        chunk_size=args.batch_size,
-                    )  # emb is a 2D tensor of shape (n_fingerprints, d)
-
-                    # Write the fingerprints to disk
-                    output_path = output_paths[X_path]
-                    output_path.parent.mkdir(parents=True, exist_ok=True)
-                    np.save(output_path, emb)
-
-                    n += emb.shape[0]  # number of fingerprints
-                    i += 1
+                # Get the next batch of data
+                # X_mel is a 4D tensor of shape (batch_size, n_mels, n_frames, 1)
+                _, X_mel, X_path = next(gen)
+                if X_mel is None:
                     progbar.update(i)
-                progbar.update(i, finalize=True)
-            except Exception as e:
-                print(
-                    "\n\x1b[1;31m[ERROR] An exception occurred during fingerprinting:\x1b[0m"
-                )
-                traceback.print_exc()  # full traceback
-                raise e
-        finally:
-            enq.stop()  # guaranteed to run, even if next(gen) throws
-        """ End of Parallelism----------------------------------------- """
+                    print(f"\n\x1b[1;33m[WARNING] Skipping {X_path} too short.\x1b[0m")
+                    continue
 
+                # Extract the fingerprints
+                # emb is a 2D tensor of shape (n_fingerprints, d)
+                emb = infer(
+                    X_mel,
+                    chunk_size=args.batch_size,
+                )
+
+                # Write the fingerprints to disk
+                output_path = output_paths[X_path]
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                np.save(output_path, emb)
+                n += emb.shape[0]
+
+            except Exception as exc:
+                print(f"[ERROR] Failed on {X_path}: {exc}")
+                traceback.print_exc()
+            i += 1
+            progbar.update(i)
+
+        progbar.update(i, finalize=True)
         print(
             f"=== Processed {i:,} audio clips and stored {n:,} fingerprints in {args.output_dir} ==="
         )
@@ -234,7 +226,7 @@ if __name__ == "__main__":
         print("Done!")
 
     finally:
-        # Keras + GC
+        enq.stop()
         tf.keras.backend.clear_session()
         gc.collect()
         # Terminate any stray multiprocessing children

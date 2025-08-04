@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from nmfp.dataloaders.loaders import InferenceLoader
@@ -25,9 +24,9 @@ class InferenceDataset:
 
         print("Initialized the inference dataset.")
 
-    def get_loader(self, inp: Path, hop_duration: float) -> InferenceLoader:
-
-        audio_paths = self.find_audio_paths(inp)
+    def get_loader(
+        self, audio_paths: list[Path], hop_duration: float
+    ) -> InferenceLoader:
 
         print("Creating the inference loader...")
         return InferenceLoader(
@@ -59,14 +58,14 @@ class InferenceDataset:
                 raise ValueError("Invalid audio paths specification.")
 
         elif inp.is_dir():
-            audio_paths = sorted(
+            audio_paths = [
                 p for ext in self.supported_audio_ext for p in inp.rglob(f"*{ext}")
-            )
+            ]
 
         else:
             raise ValueError("Invalid audio paths specification.")
 
-        assert len(audio_paths) > 0, f"No audio files found in {inp}"
-        print(f"{len(audio_paths):,} audio files found in {inp}")
+        assert len(audio_paths) > 0, f"No audio files found."
+        print(f"{len(audio_paths):,} audio files found.")
 
         return audio_paths

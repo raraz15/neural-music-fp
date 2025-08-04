@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import numpy as np
@@ -100,21 +99,9 @@ class InferenceLoader(Sequence):
         audio_path = self.audio_paths[idx]
 
         try:
-            if os.path.splitext(audio_path)[1] == ".wav":
-                audio = audio_processing.load_wav(
-                    str(audio_path),  # TODO
-                    fs=self.fs,
-                    normalize=False,
-                    pad_if_short=False,
-                )
-            else:
-                # Essentia will downmix to mono and adjust the sampling rate
-
-                audio = es.MonoLoader(filename=str(audio_path), sampleRate=self.fs)()
-                # TODO
-                print(audio.shape)
-                if len(audio.shape) > 1:
-                    audio = audio[:, 0]
+            audio = es.MonoLoader(
+                filename=str(audio_path), sampleRate=self.fs, resampleQuality=0
+            )().reshape(-1)
         except Exception as e:
             raise RuntimeError(f"Error loading audio file {audio_path}: {e}") from e
 
