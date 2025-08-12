@@ -25,12 +25,12 @@ class InferenceDataset:
         print("Initialized the inference dataset.")
 
     def get_loader(
-        self, audio_paths: list[Path], hop_duration: float
+        self, path_pairs: list[tuple[Path, Path]], hop_duration: float
     ) -> InferenceLoader:
 
         print("Creating the inference loader...")
         return InferenceLoader(
-            audio_paths=audio_paths,
+            path_pairs=path_pairs,
             segment_duration=self.segment_duration,
             hop_duration=hop_duration,
             fs=self.fs,
@@ -64,6 +64,8 @@ class InferenceDataset:
 
         else:
             raise ValueError("Invalid audio paths specification.")
+
+        audio_paths = sorted(audio_paths)
 
         assert len(audio_paths) > 0, f"No audio files found."
         print(f"{len(audio_paths):,} audio files found.")

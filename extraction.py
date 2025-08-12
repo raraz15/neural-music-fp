@@ -23,7 +23,6 @@ import traceback
 import multiprocessing as mp
 import signal
 import time
-import math
 import argparse
 from pathlib import Path
 
@@ -150,30 +149,23 @@ if __name__ == "__main__":
     common_root = os.path.commonpath(audio_paths)
     print(f"Common root path: {common_root}")
 
-    # Build the output paths and skip already processed files
-    print("Skipping already processed files...")
-    output_paths = {}
+    # Build the output paths
+    path_pairs = []
     for audio_path in audio_paths:
         output_path = (
             args.output_dir
             / audio_path.relative_to(common_root)  # preserve relative paths
         ).with_suffix(".npy")
-        if not output_path.exists():
-            output_paths[audio_path] = output_path
-    audio_paths = list(output_paths.keys())
-    print(f"{len(output_paths):,} audio files remaining to be processed.")
+        path_pairs.append((audio_path, output_path))
+    print(f"{len(path_pairs):,} audio files remaining to be processed.")
 
-    # Partition the audio files if requested
+    # partition the files
     if args.num_partitions > 1:
-        total = len(audio_paths)
-        chunk_size = math.ceil(total / args.num_partitions)
-        start = chunk_size * (args.partition - 1)
-        end = min(start + chunk_size, total)
-        audio_paths = audio_paths[start:end]
-        print(f"Partition {args.partition} will process {len(audio_paths):,} files.")
+        path_pairs = path_pairs[args.partition :: args.num_partitions]
+        print(f"Partition {args.partition} will process {len(path_pairs):,} files")
 
     # Build the dataloader and the multiprocessing enqueuer
-    loader = dataset.get_loader(audio_paths, args.hop_duration)
+    loader = dataset.get_loader(path_pairs, args.hop_duration)
     progbar = tf.keras.utils.Progbar(len(loader))
     enq = tf.keras.utils.OrderedEnqueuer(
         loader, use_multiprocessing=True, shuffle=False
@@ -190,12 +182,20 @@ if __name__ == "__main__":
             try:
                 # Get the next batch of data
                 # X_mel is a 4D tensor of shape (batch_size, n_mels, n_frames, 1)
-                _, X_mel, X_path = next(gen)
-                if X_mel is None:
-                    progbar.update(i)
-                    print(f"\n\x1b[1;33m[WARNING] Skipping {X_path} too short.\x1b[0m")
-                    continue
+                _, X_mel, input_path, output_path = next(gen)
+            except Exception as exc:
+                print(f"[ERROR] Failed to fetch batch #{i}: {exc}")
+                traceback.print_exc()
+                i += 1
+                progbar.update(i)
+                continue
 
+            if X_mel is None:
+                i += 1
+                progbar.update(i)
+                continue
+
+            try:
                 # Extract the fingerprints
                 # emb is a 2D tensor of shape (n_fingerprints, d)
                 emb = infer(
@@ -204,13 +204,12 @@ if __name__ == "__main__":
                 )
 
                 # Write the fingerprints to disk
-                output_path = output_paths[X_path]
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 np.save(output_path, emb)
                 n += emb.shape[0]
 
             except Exception as exc:
-                print(f"[ERROR] Failed on {X_path}: {exc}")
+                print(f"[ERROR] Failed on {input_path}: {exc}")
                 traceback.print_exc()
             i += 1
             progbar.update(i)

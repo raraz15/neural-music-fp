@@ -15,7 +15,7 @@ class InferenceLoader(Sequence):
 
     def __init__(
         self,
-        audio_paths: list[Path],
+        path_pairs: list[tuple[Path, Path]],
         segment_duration=1,
         hop_duration=0.5,
         fs=8000,
@@ -30,8 +30,8 @@ class InferenceLoader(Sequence):
         """
         Parameters
         ----------
-            audio_paths : list[Path],
-                Aduio clip paths as a list.
+            path_pairs : list[tuple[Path, Path]],
+                Input output path pairs.
             segment_duration : (float), optional
                 Segment duration in seconds. The default is 1.
             hop_duration : (float), optional
@@ -74,13 +74,15 @@ class InferenceLoader(Sequence):
         self.f_max = f_max
         self.dynamic_range = dynamic_range
         self.scale_output = scale_output
-        self.audio_paths = audio_paths
+        self.path_pairs = path_pairs
 
     def __len__(self):
         """This loader processes one audio file at a time."""
-        return len(self.audio_paths)
+        return len(self.path_pairs)
 
-    def __getitem__(self, idx) -> np.ndarray:
+    def __getitem__(
+        self, idx
+    ) -> tuple[np.ndarray | None, np.ndarray | None, Path, Path]:
 
         # Initialize a worker-specific melspec instance if not already present.
         if not hasattr(self, "mel_spec"):
@@ -96,17 +98,21 @@ class InferenceLoader(Sequence):
                 scale=self.scale_output,
             )
 
-        audio_path = self.audio_paths[idx]
+        input_path, output_path = self.path_pairs[idx]
+        if output_path.exists():
+            # If the output file already exists, skip processing
+            return None, None, input_path, output_path
 
         try:
             audio = es.MonoLoader(
-                filename=str(audio_path), sampleRate=self.fs, resampleQuality=0
+                filename=str(input_path), sampleRate=self.fs, resampleQuality=0
             )().reshape(-1)
         except Exception as e:
-            raise RuntimeError(f"Error loading audio file {audio_path}: {e}") from e
+            raise RuntimeError(f"Error loading audio file {input_path}: {e}")
 
         if len(audio) < self.segment_length:
-            return None, None, audio_path
+            print(f"Skipping {input_path} too short.")
+            return None, None, input_path, output_path
 
         # Segment the audio into fixed-length segments
         X_batch, _ = audio_processing.segment_audio(
@@ -116,9 +122,14 @@ class InferenceLoader(Sequence):
             discard_remainder=True,  # We discard the remainder
         )
 
-        # Compute mel spectrograms
-        X_batch_mel = self.mel_spec.compute_batch(X_batch)
-        # Fix the dimensions and types
-        X_batch_mel = np.expand_dims(X_batch_mel, 3).astype(np.float32)
+        try:
+            # Compute mel spectrograms
+            X_batch_mel = self.mel_spec.compute_batch(X_batch)
+            # Fix the dimensions and types
+            X_batch_mel = np.expand_dims(X_batch_mel, 3).astype(np.float32)
+        except Exception as e:
+            raise RuntimeError(
+                f"Error processing mel spectrogram for {input_path}: {e}"
+            )
 
-        return X_batch, X_batch_mel, audio_path
+        return X_batch, X_batch_mel, input_path, output_path
