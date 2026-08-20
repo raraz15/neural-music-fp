@@ -4,7 +4,8 @@ This repository contains the code to run the experiments detailed in our [ISMIR2
 
 ## News
 
-- **2026-08-20** — All the audio files of the **test database** are now shared! You no longer need to download and process the FMA dataset yourself to reproduce our evaluation. Get them from the [CSUC Dataverse](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1).
+- **2026-08-20** — All the audio files are now shared, including the **test database*! You no longer need to download and process the FMA dataset yourself to reproduce our evaluation. Get them from the [CSUC Dataverse](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1).
+- **2026-05** — An independent, third-party evaluation finds NMFP to be the **most scalable** of the audio fingerprinting systems tested. In [Scalable Evaluation for Audio Identification via Synthetic Latent Fingerprint Generation](https://arxiv.org/abs/2509.18620) (A. Bhattacharjee, M. Pasini, and E. Benetos, ICASSP 2026, pp. 14542–14546), retrieval performance is measured while the reference database is grown with synthetic distractors.
 
 **Key Features**
 
@@ -28,27 +29,29 @@ This repository contains the code to run the experiments detailed in our [ISMIR2
 
 ## Table of Contents
 
-- [News](#news)
-- [Installation](#installation)
-  - [Conda Environment](#conda-environment)
-    - [GPU support](#gpu-support)
-      - [Possible Errors](#possible-errors)
-    - [CPU only](#cpu-only)
-  - [Docker Image](#docker-image)
-- [Pre-trained Models](#pre-trained-models)
-- [Usage](#usage)
-  - [Inference with a Pre-trained Model](#inference-with-a-pre-trained-model)
-    - [Extract Fingerprints](#extract-fingerprints)
-    - [Perform Retrieval](#perform-retrieval)
-  - [Reproducing the Paper's Experiments](#reproducing-the-papers-experiments)
-    - [Train a Neural Audio Fingerprinter](#train-a-neural-audio-fingerprinter)
-    - [Evaluation](#evaluation)
-      - [Extraction](#extraction)
-      - [Retrieval and Metrics](#retrieval-and-metrics)
-- [Dataset for Training and Evaluation](#dataset-for-training-and-evaluation)
-- [Cite](#cite)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [Neural Music Fingerprinting](#neural-music-fingerprinting)
+  - [News](#news)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Conda Environment](#conda-environment)
+      - [GPU support](#gpu-support)
+        - [Possible Errors](#possible-errors)
+      - [CPU only](#cpu-only)
+    - [Docker Image](#docker-image)
+  - [Pre-trained Models](#pre-trained-models)
+  - [Usage](#usage)
+    - [Inference with a Pre-trained Model](#inference-with-a-pre-trained-model)
+      - [Extract Fingerprints](#extract-fingerprints)
+      - [Perform Retrieval](#perform-retrieval)
+    - [Reproducing the Paper's Experiments](#reproducing-the-papers-experiments)
+      - [Train a Neural Audio Fingerprinter](#train-a-neural-audio-fingerprinter)
+      - [Evaluation](#evaluation)
+        - [Extraction](#extraction)
+        - [Retrieval and Metrics](#retrieval-and-metrics)
+  - [Dataset for Training and Evaluation](#dataset-for-training-and-evaluation)
+  - [Cite](#cite)
+  - [License](#license)
+  - [Acknowledgements](#acknowledgements)
 
 ## Installation
 
