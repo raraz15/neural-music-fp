@@ -2,6 +2,10 @@
 
 This repository contains the code to run the experiments detailed in our [ISMIR2025 paper](https://arxiv.org/abs/2506.22661): Enhancing Neural Audio Fingerprint Robustness to Audio Degradation for Music Identification. We build upon the [Neural Audio Fingerprinting](https://github.com/mimbres/neural-audio-fp) framework, introducing several key improvements to create a more robust and efficient music identification system.
 
+## News
+
+- **2026-08-20** — All the audio files of the **test database** are now shared! You no longer need to download and process the FMA dataset yourself to reproduce our evaluation. Get them from the [CSUC Dataverse](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1).
+
 **Key Features**
 
 - **Enhanced Robustness**: Models are trained to be resilient against various real-world audio degradations.
@@ -24,6 +28,7 @@ This repository contains the code to run the experiments detailed in our [ISMIR2
 
 ## Table of Contents
 
+- [News](#news)
 - [Installation](#installation)
   - [Conda Environment](#conda-environment)
     - [GPU support](#gpu-support)
@@ -317,7 +322,11 @@ We share the following data in zenodo [![DOI](https://zenodo.org/badge/DOI/10.52
   - Full tracks of the queries
 - degradation
 
-However, the entire test database files take 400+ GB space. You should download the FMA dataset and process them by following the steps in `dataset_creation/README`. We included the full tracks of the query chunks so that the clean versions are exactly the same (During mp3 to wav conversion and processing sox may apply dithering, which is a stochastic process. Not sure about the effect of this, but ideally, master tracks should be the same.)
+The test database audio files take 400+ GB space, which does not fit in zenodo's 50GB cap. We therefore share them separately on the CSUC Dataverse:
+
+- [Test database audio files](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1)
+
+With these files you no longer need to download the FMA dataset and process it yourself. If you still prefer to build the test database from scratch, follow the steps in `dataset_creation/README`. We included the full tracks of the query chunks so that the clean versions are exactly the same (During mp3 to wav conversion and processing sox may apply dithering, which is a stochastic process. Not sure about the effect of this, but ideally, master tracks should be the same.)
 
 **NOTE**: We do not perform validation during training therefore we did not include NAFP's validation partition with the dataset.
 
