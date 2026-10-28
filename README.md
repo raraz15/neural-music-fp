@@ -4,7 +4,8 @@ This repository contains the code to run the experiments detailed in our [ISMIR2
 
 ## News
 
-- **2026-08-20** — All the audio files are now shared, including the **test database*! You no longer need to download and process the FMA dataset yourself to reproduce our evaluation. Get them from the [CSUC Dataverse](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1).
+- **2026-10** — NMFP is put to the test under harder conditions in our ISMIR 2026 paper, [Unified Music Identification for Tracks and Versions](https://arxiv.org/abs/2608.19919), and it holds up remarkably well, remaining one of the strongest track identification baselines we compared against. Code for the paper is available at [raraz15/unified-track-and-version-id](https://github.com/raraz15/unified-track-and-version-id).
+- **2026-08-20** — All the audio files are now shared, including the **test database**! You no longer need to download and process the FMA dataset yourself to reproduce our evaluation. Get them from the [CSUC Dataverse](https://dataverse.csuc.cat/file.xhtml?fileId=489689&version=1.1).
 - **2026-05** — An independent, third-party evaluation finds NMFP to be the **most scalable** of the audio fingerprinting systems tested. In [Scalable Evaluation for Audio Identification via Synthetic Latent Fingerprint Generation](https://arxiv.org/abs/2509.18620) (A. Bhattacharjee, M. Pasini, and E. Benetos, ICASSP 2026, pp. 14542–14546), retrieval performance is measured while the reference database is grown with synthetic distractors.
 
 **Key Features**
